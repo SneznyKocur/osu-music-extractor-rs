@@ -3,6 +3,8 @@ use std::fs;
 use std::fs::DirEntry;
 use std::io::{Write, stdin, stdout};
 use std::path::{Path, PathBuf};
+use rayon::prelude::*;
+use std::env;
 
 struct OsuFile {
     artist: String,
@@ -113,16 +115,26 @@ fn visit_dirs(dir: &DirEntry, output_dir: &Path) -> std::io::Result<()> {
 fn main() -> std::io::Result<()> {
     let mut songs_directory: String = String::new();
     let mut output_directory: String = String::new();
-    print!("Enter osu songs directory:");
-    let _ = stdout().flush();
-    stdin()
-        .read_line(&mut songs_directory)
-        .expect("Failed to get user input!");
-    print!("Enter output songs directory (will be created if it does not exist):");
-    let _ = stdout().flush();
-    stdin()
-        .read_line(&mut output_directory)
-        .expect("Failed to get user input!");
+    let args: Vec<String> = env::args().collect();
+    if args.len() > 1 {
+        songs_directory = args[1].clone();
+    }
+    if args.len() > 2 {
+        output_directory = args[2].clone();
+    }
+    if args.len() == 1 {
+        print!("Enter osu songs directory:");
+        let _ = stdout().flush();
+        stdin()
+            .read_line(&mut songs_directory)
+            .expect("Failed to get user input!");
+        print!("Enter output songs directory (will be created if it does not exist):");
+        let _ = stdout().flush();
+        stdin()
+            .read_line(&mut output_directory)
+            .expect("Failed to get user input!");
+    }
+    
 
     songs_directory = songs_directory.trim().to_string();
     output_directory = output_directory.trim().to_string();
@@ -144,9 +156,9 @@ fn main() -> std::io::Result<()> {
         .map(|res| res.map(|e| e))
         .collect::<Result<Vec<_>, std::io::Error>>()?;
 
-    for file in entries {
-        let _ = visit_dirs(&file, output_path);
-    }
+    entries.par_iter().for_each(|entry| {
+            visit_dirs(&entry, output_path).unwrap();
+    });
 
     Ok(())
 }
