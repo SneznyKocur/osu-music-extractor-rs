@@ -112,14 +112,16 @@ fn main() -> std::io::Result<()> {
     let songs_path: &Path = Path::new(songs_directory.as_str());
     if !songs_path.is_dir() {eprintln!("Songs directory does not exist!");}
 
+
+    if output_directory == "" {
+        output_directory = "./osu songs".to_string();
+    }
     let output_path: &Path =  Path::new(output_directory.as_str());
     if !output_path.is_dir() {fs::create_dir_all(output_path).unwrap()}
 
     let entries = fs::read_dir(songs_path)?
         .map(|res| res.map(|e| e))
         .collect::<Result<Vec<_>, std::io::Error>>()?;
-
-    println!("{:#?}",entries);
 
     for file in entries {
         let _ = visit_dirs(&file,output_path);
