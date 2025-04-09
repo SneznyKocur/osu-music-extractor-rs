@@ -1,10 +1,10 @@
 use audiotags::Tag;
+use rayon::prelude::*;
+use std::env;
 use std::fs;
 use std::fs::DirEntry;
 use std::io::{Write, stdin, stdout};
 use std::path::{Path, PathBuf};
-use rayon::prelude::*;
-use std::env;
 
 struct OsuFile {
     artist: String,
@@ -134,7 +134,6 @@ fn main() -> std::io::Result<()> {
             .read_line(&mut output_directory)
             .expect("Failed to get user input!");
     }
-    
 
     songs_directory = songs_directory.trim().to_string();
     output_directory = output_directory.trim().to_string();
@@ -157,7 +156,7 @@ fn main() -> std::io::Result<()> {
         .collect::<Result<Vec<_>, std::io::Error>>()?;
 
     entries.par_iter().for_each(|entry| {
-            visit_dirs(&entry, output_path).unwrap();
+        visit_dirs(&entry, output_path).unwrap();
     });
 
     Ok(())
